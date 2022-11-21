@@ -69,3 +69,47 @@ TEST(finite_difference_tests, test_equidistant_central_difference_stencil)
         });
     });
 }
+
+TEST(finite_difference_tests, test_equidistant_forward_difference_stencil)
+{
+    //Data taken from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
+
+    static constexpr auto indicies = std::make_tuple(
+        std::array{0, 1},
+        std::array{0, 1, 2},
+        std::array{0, 1, 2, 3},
+        std::array{0, 1, 2, 3, 4});
+
+    static constexpr size_t indicies_size = std::tuple_size_v<decltype(indicies)>;
+
+    static constexpr auto expected_matrix = std::make_tuple(
+        std::make_tuple(
+            std::array{ -1., 1. }
+        ),
+        std::make_tuple(
+            std::array{ -3./2., 2., -1./2. },
+            std::array{ 1., -2., 1.}
+        ),
+        std::make_tuple(
+            std::array{ -11./6., 3., -3./2., 1./3. },
+            std::array{ 2., -5., 4., -1.},
+            std::array{ -1., 3., -3., 1.}
+        ),
+        std::make_tuple(
+            std::array{ -25./12., 4., -3., 4./3., -1./4. },
+            std::array{ 35./12., -26./3., 19./2., -14./3., 11./12.},
+            std::array{ -5./2., 9., -12., 7., -3./2. },
+            std::array{1., -4., 6., -4., 1.}
+        )
+    );
+
+    utilities::constexpr_for<indicies_size>([]<size_t I>(utilities::size_t_constant<I>) {
+        utilities::constexpr_for<I+1>([]<size_t order>(utilities::size_t_constant<order>) {
+            auto& expected = std::get<order>(std::get<I>(expected_matrix));
+            //Compiler just gives up if I set this to constexpr, LOL.
+            auto actual = calculus::finite_difference_stencil(order + 1, std::get<I>(indicies));
+
+            ASSERT_TRUE(std::ranges::equal(expected, actual)) << "Failed at: I=" << I << ", order=" << order;
+        });
+    });
+}

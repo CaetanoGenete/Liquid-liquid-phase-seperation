@@ -1,7 +1,9 @@
 #ifndef UTILITIES_META_HPP_INCLUDED
 #define UTILITIES_META_HPP_INCLUDED
 
-#include <utility>
+#include <utility>     //For access to std::index_sequence
+#include <functional>  //For access to std::invoke
+#include <type_traits> //For access to std::integral_constant
 
 namespace utilities {
 

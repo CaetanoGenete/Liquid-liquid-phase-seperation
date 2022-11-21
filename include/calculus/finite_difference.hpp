@@ -1,10 +1,10 @@
 #ifndef CALCULUS_FINITE_DIFFERENCE_HPP_INCLUDED
 #define CALCULUS_FINITE_DIFFERENCE_HPP_INCLUDED
 
-#include <array>
-#include <cstddef>
-#include <numeric>
-#include <iterator>
+#include <array>    //Access to std::array
+#include <utility>  //Access to std::swap
+#include <iterator> //Access to std::iter_value_t and iterator concepts
+#include <concepts> //Access to std::signed_integral concept
 
 namespace calculus {
 

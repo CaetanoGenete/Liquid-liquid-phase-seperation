@@ -11,6 +11,7 @@ set(LLPS_DEPENDENCIES_SOURCE_DIR "${CMAKE_SOURCE_DIR}/deps/")
 set(LLPS_DEPENDENCIES_BINARY_DIR "${CMAKE_BINARY_DIR}/dependencies/")
 
 set(LLPS_HEADERS
+    "include/grid.hpp"
     "include/calculus/finite_difference.hpp"
     "include/utilities/io.hpp"
     "include/utilities/data_analytics.hpp"
@@ -27,6 +28,7 @@ option(LLPS_USE_EIGEN "Uses eigen arrays.")
 option(LLPS_USE_MKL "Use MKL FFT.")
 
 if(LLPS_BUILD_TESTS)
+    enable_testing()
     add_subdirectory(tests)
 endif()
 

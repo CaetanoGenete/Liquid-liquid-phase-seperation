@@ -17,4 +17,7 @@ set_target_properties(gtest_main PROPERTIES FOLDER extern)
 set_target_properties(gmock      PROPERTIES FOLDER extern)
 set_target_properties(gmock_main PROPERTIES FOLDER extern)
 
-add_gtest(test_finite_difference "test_finite_difference.cpp" LLPS_BASIC) 
+add_gtest(test_finite_difference "test_finite_difference.cpp" LLPS_BASIC)
+add_gtest(test_data_analytics "test_data_analytics.cpp" LLPS_BASIC)
+
+
