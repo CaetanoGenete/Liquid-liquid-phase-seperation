@@ -1,0 +1,8 @@
+#ifndef UTILITIES_IO_HPP_INCLUDED
+#define UTILITIES_IO_HPP_INCLUDED
+
+namespace utilities {
+
+}
+
+#endif // !UTILITIES_IO_HPP_INCLUDED

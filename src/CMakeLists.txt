@@ -1,0 +1,2 @@
+add_executable(gen_fd_error_data "generate_fd_error_data.cpp")
+target_link_libraries(gen_fd_error_data PRIVATE LLPS_BASIC)
