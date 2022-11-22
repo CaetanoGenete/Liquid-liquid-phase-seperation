@@ -1,19 +1,91 @@
-#include "grid.hpp"
-
-#include <iostream>
+#include <string>
+#include <vector>
+#include <fstream>
 #include <cmath>
 #include <numbers>
+#include <iostream>
+
+#include "grid.hpp"
+#include "calculus/differentiate.hpp"
+#include "utilities/data_analytics.hpp"
+#include "utilities/meta.hpp"
+#include "utilities/io.hpp"
+
+//For access to s suffix
+using namespace std::literals::string_literals;
+
+struct test_func
+{
+    static double phi(double x, double y)
+    {
+        return std::cos(x) + std::sin(y);
+    }
+
+    static double dphi(double x, double y)
+    {
+        return -phi(x, y);
+    }
+};
 
 int main()
 {
-    grid<double, 8, 8> test;
-    apply_equi2D(test, 0., 2.*std::numbers::pi, [](double x, double y) {
-        return std::cos(x) + std::sin(y);
+    //For pretty plots
+    static constexpr const char* colours[] = {"#f0f921", "#fdb42f", "#ed7953", "#cc4778", "#9c179e", "#5c01a6", "#0d0887"};
+
+    static constexpr double x_min = 0;
+    static constexpr double x_max = 2.*std::numbers::pi;
+
+    std::ofstream file(LLPS_OUTPUT_DIR"finite_difference_accuracy.dat", std::ios::binary);
+ 
+    utilities::plot_header plot_header;
+    plot_header.title   = "log-log plot of max absolute error of $\\nabla^2 \\phi$ using finite differences.\n$\\phi(x, y) = \\cos(x) + \\sin(x)$";
+    plot_header.x_label = "$\\Delta x = \\Delta y$";
+    plot_header.y_label = "max absolute error";
+    plot_header.x_scale = "log";
+    plot_header.y_scale = "log";
+
+    constexpr size_t lines_count = 7;
+    utilities::serialise_plot_header(file, lines_count, plot_header);
+
+    utilities::constexpr_for<lines_count>([&]<size_t I>(utilities::size_t_constant<I>)
+    {
+        static constexpr size_t order = 2 * (I+1);
+        static constexpr size_t samples = 30;
+
+        std::vector<double> delta_xs;
+        std::vector<double> max_abs_errs;
+        delta_xs.reserve(samples);
+        max_abs_errs.reserve(samples);
+
+        utilities::constexpr_for<samples>([&]<size_t J>(utilities::size_t_constant<J>)
+        {
+            static constexpr size_t rows = 16 + J * 10;
+            static constexpr double dx = (x_max - x_min) / rows;
+
+            grid<double, rows, rows> expected;
+            grid<double, rows, rows> phi;
+            apply_equi2D(expected, x_min, x_max, test_func::dphi);
+            apply_equi2D(phi, x_min, x_max, test_func::phi);
+
+            auto actual = calculus::laplacian_central_fd<order>(phi, dx, dx);
+            
+            double max_abs_err = utilities::max_abs_error(expected.begin(), expected.end(), actual.begin(), actual.end());
+
+            delta_xs.push_back(dx);
+            max_abs_errs.push_back(max_abs_err);
+        });
+
+        utilities::line_header line_header;
+        line_header.colour = colours[I];
+        line_header.label  = "O($\\Delta x^{"s + std::to_string(order) + "}$)"s;
+
+        utilities::serialise_line_header<double, double>(file, samples, line_header);
+
+        for (double dx : delta_xs)
+            utilities::serialise_to_binary(file, dx);
+        for (double errors : max_abs_errs)
+            utilities::serialise_to_binary(file, errors);
     });
 
-    for (size_t row = 0; row < test.rows(); ++row) {
-        for (size_t col = 0; col < test.cols(); ++col)
-            std::cout << test(row, col) << ", ";
-        std::cout << std::endl;
-    }
+    file.close();
 }

@@ -30,7 +30,7 @@ namespace calculus {
     }
 
     template<class OutType = double, std::signed_integral IntType, size_t N>
-    constexpr auto finite_difference_stencil(size_t order, std::array<IntType, N> samples)
+    constexpr auto fd_stencil(size_t order, std::array<IntType, N> samples)
     {
         std::array<OutType, N> result;
 
@@ -46,7 +46,7 @@ namespace calculus {
                     denom *= (samples[i] - samples[j]);
             }
 
-            //Swapping here to emulate removing an element
+            //Swapping i-th element with the last to emulate removing it. Note that range below is decreased by one.
             std::swap(samples[i], samples.back());
             result[i] = fact * elem_sym_poly(N - order - 1, samples.begin(), std::prev(samples.end())) / denom;
             //Revert samples back to unaltered state
@@ -55,6 +55,26 @@ namespace calculus {
 
         return result;
     }
+
+    template<size_t error_order>
+    consteval auto central_indicies()
+    {
+        static_assert((error_order & 1) == 0, "error order must be even for central finite difference!");
+
+        std::array<ptrdiff_t, error_order + 1> result{};
+
+        for (size_t i = 0; i <= error_order; ++i)
+            result[i] = i - static_cast<ptrdiff_t>(error_order)/2;
+
+        return result;
+    }
+
+    template<size_t error_order, class OutType = double>
+    constexpr auto central_fd_stencil(size_t order)
+    {
+        return fd_stencil<OutType>(order, central_indicies<error_order>());
+    }
+
 }
 
 #endif // !CALCULUS_FINITE_DIFFERENCE_HPP_INCLUDED

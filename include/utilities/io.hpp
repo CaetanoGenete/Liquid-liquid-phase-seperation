@@ -5,6 +5,7 @@
 #include <fstream>  //For access to std::ofstream
 #include <string>   //For access to std::string
 #include <cassert>  //For access to assert macro
+#include <cstddef>  //For access to fixed size types
 
 namespace utilities {
 
@@ -16,27 +17,31 @@ namespace utilities {
 
     inline void serialise_string(std::ofstream& stream, std::string string)
     {
-        serialise_to_binary(stream, string.size());
+        serialise_to_binary<uint64_t>(stream, string.size());
         stream << string;
     }
 
-    struct plot_meta
+    struct plot_header
     {
         std::string title   = "";
         std::string x_label = "";
         std::string y_label = "";
+        std::string x_scale = "linear";
+        std::string y_scale = "linear";
     };
 
-    inline void serialise_plot_header(std::ofstream& stream, size_t count, plot_meta meta = {})
+    inline void serialise_plot_header(std::ofstream& stream, size_t count, plot_header meta = {})
     {
         serialise_string(stream, meta.title);
         serialise_string(stream, meta.x_label);
         serialise_string(stream, meta.y_label);
+        serialise_string(stream, meta.x_scale);
+        serialise_string(stream, meta.y_scale);
 
-        serialise_to_binary(stream, count);
+        serialise_to_binary<uint64_t>(stream, count);
     }
 
-    struct line_meta
+    struct line_header
     {
         std::string label     = "";
         std::string colour    = "#000000";
@@ -44,7 +49,7 @@ namespace utilities {
     };
 
     template<std::floating_point XType, std::floating_point YType>
-    inline void serialise_line_header(std::ofstream& stream, size_t samples_count, line_meta meta = {})
+    inline void serialise_line_header(std::ofstream& stream, size_t samples_count, line_header meta = {})
     {
         serialise_string(stream, meta.label);
         serialise_string(stream, meta.colour);
@@ -53,7 +58,7 @@ namespace utilities {
         serialise_to_binary<uint8_t>(stream, sizeof(XType));
         serialise_to_binary<uint8_t>(stream, sizeof(YType));
 
-        serialise_to_binary(stream, samples_count);
+        serialise_to_binary<uint64_t>(stream, samples_count);
     }
 }
 

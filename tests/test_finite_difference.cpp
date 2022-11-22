@@ -20,14 +20,6 @@ TEST(finite_difference_tests, test_equidistant_central_difference_stencil)
 {
     //Data taken from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
-    static constexpr auto indicies = std::make_tuple(
-        std::array{-1, 0, 1},
-        std::array{-2, -1, 0, 1, 2},
-        std::array{-3, -2, -1, 0, 1, 2, 3},
-        std::array{-4, -3, -2, -1, 0, 1, 2, 3, 4});
-
-    static constexpr size_t indicies_size = std::tuple_size_v<decltype(indicies)>;
-
     static constexpr auto expected_matrix = std::make_tuple(
         std::make_tuple(
             std::array{-1./2., 0., 1./2.},
@@ -57,13 +49,16 @@ TEST(finite_difference_tests, test_equidistant_central_difference_stencil)
         )
     );
 
-    utilities::constexpr_for<indicies_size>([]<size_t I>(utilities::size_t_constant<I>) {
+    static constexpr size_t indicies_count = std::tuple_size_v<decltype(expected_matrix)>;
+
+    utilities::constexpr_for<indicies_count>([]<size_t I>(utilities::size_t_constant<I>) {
         constexpr size_t max_order = std::min<size_t>(I * 2 + 2, 6);
 
         utilities::constexpr_for<max_order>([]<size_t order>(utilities::size_t_constant<order>) {
             auto& expected = std::get<order>(std::get<I>(expected_matrix));
             //Compiler just gives up if I set this to constexpr, LOL.
-            auto actual = calculus::finite_difference_stencil(order + 1, std::get<I>(indicies));
+            auto actual = calculus::central_fd_stencil<(I+1)*2>(order + 1);
+
 
             ASSERT_TRUE(std::ranges::equal(expected, actual)) << "Failed at: I=" << I << ", order=" << order;
         });
@@ -107,9 +102,25 @@ TEST(finite_difference_tests, test_equidistant_forward_difference_stencil)
         utilities::constexpr_for<I+1>([]<size_t order>(utilities::size_t_constant<order>) {
             auto& expected = std::get<order>(std::get<I>(expected_matrix));
             //Compiler just gives up if I set this to constexpr, LOL.
-            auto actual = calculus::finite_difference_stencil(order + 1, std::get<I>(indicies));
+            auto actual = calculus::fd_stencil(order + 1, std::get<I>(indicies));
 
             ASSERT_TRUE(std::ranges::equal(expected, actual)) << "Failed at: I=" << I << ", order=" << order;
         });
+    });
+}
+
+
+TEST(finite_difference_tests, test_central_indicies)
+{
+    static constexpr size_t test_count = 10;
+
+    utilities::constexpr_for<test_count>([]<size_t I>(utilities::size_t_constant<I>) {
+        constexpr size_t order = (I + 1) * 2;
+        auto indicies = calculus::central_indicies<order>();
+
+        ASSERT_EQ(order + 1, std::size(indicies)) << "Mismatch in expected size!";
+
+        for (size_t i = 0; i <= order; ++i)
+            ASSERT_EQ(indicies[i], i - static_cast<ptrdiff_t>(order)/2);
     });
 }

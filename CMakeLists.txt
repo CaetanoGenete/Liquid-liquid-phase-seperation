@@ -13,6 +13,7 @@ set(LLPS_DEPENDENCIES_BINARY_DIR "${CMAKE_BINARY_DIR}/dependencies/")
 set(LLPS_HEADERS
     "include/grid.hpp"
     "include/calculus/finite_difference.hpp"
+    "include/calculus/differentiate.hpp"
     "include/utilities/io.hpp"
     "include/utilities/data_analytics.hpp"
     "include/utilities/meta.hpp")
