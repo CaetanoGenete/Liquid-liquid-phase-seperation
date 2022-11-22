@@ -33,5 +33,19 @@ if(LLPS_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+if(LLPS_USE_MKL)
+    find_package(MKL CONFIG)
+    if(MKL_FOUND)
+        add_library(LLPS_MKL INTERFACE)
+
+        target_compile_options(LLPS_MKL INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+        target_include_directories(LLPS_MKL INTERFACE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
+        target_compile_definitions(LLPS_MKL INTERFACE "LLPS_USE_MKL")
+        target_link_libraries(LLPS_MKL INTERFACE LLPS_BASIC INTERFACE $<LINK_ONLY:MKL::MKL>)
+    else()
+        message(WARNING "intelMKL was not found! Disabling usage.")
+    endif()
+endif()
+
 #Adding source files
 add_subdirectory(src)

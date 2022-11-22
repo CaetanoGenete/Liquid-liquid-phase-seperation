@@ -7,15 +7,6 @@
 #include "calculus/finite_difference.hpp"
 #include "utilities/meta.hpp"
 
-struct close_pred
-{
-    template<class LhsType, class RhsType>
-    constexpr bool operator()(const LhsType& lhs, const RhsType& rhs)
-    {
-        return std::abs(lhs - rhs) < 1e-10;
-    }
-};
-
 TEST(finite_difference_tests, test_equidistant_central_difference_stencil)
 {
     //Data taken from: https://en.wikipedia.org/wiki/Finite_difference_coefficient
@@ -121,6 +112,6 @@ TEST(finite_difference_tests, test_central_indicies)
         ASSERT_EQ(order + 1, std::size(indicies)) << "Mismatch in expected size!";
 
         for (size_t i = 0; i <= order; ++i)
-            ASSERT_EQ(indicies[i], i - static_cast<ptrdiff_t>(order)/2);
+            ASSERT_EQ(indicies[i], static_cast<ptrdiff_t>(i - order/2));
     });
 }

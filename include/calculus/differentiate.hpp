@@ -8,7 +8,7 @@
 #include "../grid.hpp"
 
 namespace calculus {
-
+    /*
     template<typename Type, size_t _rows, size_t _cols, typename Container, std::integral IntType, size_t _kernel_size>
     constexpr auto laplacian_fd(
         const grid<Type, _rows, _cols, Container>& phi, 
@@ -40,11 +40,35 @@ namespace calculus {
 
         return dphi;
     }
+    */
 
     template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container>
     constexpr auto laplacian_central_fd(const grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
     {
-        return laplacian_fd(phi, central_indicies<error_order>(), dx, dy);
+        static constexpr auto stencil = central_fd_stencil<error_order, Type>(2);
+        static constexpr size_t offset = error_order / 2;
+
+        grid<Type, _rows, _cols, Container> dphi;
+
+        for (size_t row = 0; row < _rows; ++row)
+        {
+            size_t offset_row = (row + offset) % _rows;;
+
+            for (size_t col = 0; col < _cols; ++col)
+            {
+                size_t offset_col = (col + offset) % _cols;
+
+                for (size_t i = 0; i <= error_order; ++i) {
+                    //Using 2D index here to remain as general as possible
+                    dphi(offset_row, offset_col) += (
+                        phi(offset_row, (col + i) % _cols) / (dx * dx) +
+                        phi((row + i) % _rows, offset_col) / (dy * dy)
+                    ) * stencil[i];
+                }
+            }
+        }
+
+        return dphi;
     }
 
 }

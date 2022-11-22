@@ -4,6 +4,7 @@
 #include <cmath>
 #include <numbers>
 #include <iostream>
+#include <iomanip>
 
 #include "grid.hpp"
 #include "calculus/differentiate.hpp"
@@ -26,6 +27,11 @@ struct test_func
         return -phi(x, y);
     }
 };
+
+double logd(double value)
+{
+    return std::log(value);
+}
 
 int main()
 {
@@ -74,6 +80,25 @@ int main()
             delta_xs.push_back(dx);
             max_abs_errs.push_back(max_abs_err);
         });
+        
+        //Calculate machine imprecision point
+        size_t stop_index = 1;
+        while (stop_index < samples)
+        {
+            if (max_abs_errs[stop_index] >= max_abs_errs[stop_index - 1])
+                break;
+            else
+                ++stop_index;
+        }
+
+        auto fit = utilities::poly_fit1D(
+            delta_xs.begin(), 
+            delta_xs.begin() + stop_index,
+            max_abs_errs.begin(), 
+            max_abs_errs.begin() + stop_index,
+            std::logl, std::logl);
+
+        std::cout << "Actual error order: (expected: " << std::setw(2) << order << ") x^" << fit.gradient << std::endl;
 
         utilities::line_header line_header;
         line_header.colour = colours[I];

@@ -1,9 +1,10 @@
 #ifndef UTILS_DATA_ANALYTICS_HPP_INCLUDED
 #define UTILS_DATA_ANALYTICS_HPP_INCLUDED
 
-#include <iterator> //Access to std::iter_value_t and iterator concepts
-#include <assert.h> //Access to assert macro
-#include <cmath>    //Access to std::abs
+#include <iterator>   //Access to std::iter_value_t and iterator concepts
+#include <assert.h>   //Access to assert macro
+#include <cmath>      //Access to std::abs
+#include <functional> //Access to std::invoke
 
 namespace utilities {
 
@@ -14,8 +15,8 @@ namespace utilities {
         Type gradient;
     };
 
-    template<typename XIt, typename YIt>
-    constexpr auto poly_fit1D(XIt first_x, XIt last_x, YIt first_y, YIt last_y)
+    template<typename XIt, typename YIt, class XProj = std::identity, class YProj = std::identity>
+    constexpr auto poly_fit1D(XIt first_x, XIt last_x, YIt first_y, YIt last_y, XProj x_proj = {}, YProj y_proj = {})
     {
         using x_value = std::iter_value_t<XIt>;
         using y_value = std::iter_value_t<YIt>;
@@ -28,8 +29,8 @@ namespace utilities {
         XIt x_it = first_x;
         YIt y_it = first_y;
         for (; x_it != last_x && y_it != last_y; ++x_it, ++y_it, ++size) {
-            x_bar += *x_it;
-            y_bar += *y_it;
+            x_bar += std::invoke(x_proj, *x_it);
+            y_bar += std::invoke(y_proj, *y_it);
         }
 
         //Calculate means
@@ -46,9 +47,9 @@ namespace utilities {
         x_value den{};
         for (; x_it != last_x; ++x_it, ++y_it)
         {
-            x_value x_diff = (*x_it - x_bar);
+            x_value x_diff = (std::invoke(x_proj, *x_it) - x_bar);
 
-            num += x_diff * (*y_it - y_bar);
+            num += x_diff * (std::invoke(y_proj, *y_it) - y_bar);
             den += x_diff * x_diff;
         }
 
