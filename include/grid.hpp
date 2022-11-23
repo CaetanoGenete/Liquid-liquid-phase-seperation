@@ -4,7 +4,18 @@
 #include <vector>      //Access to std::vector
 #include <type_traits> //Access to std::is_same_v
 
-template<typename Type, size_t _rows, size_t _cols, typename Container = std::vector<Type>>
+#include "aligned_allocator.hpp"
+
+#ifdef LLPS_USE_MKL
+    template<class Type>
+    using _grid_default_alloc = fftw_allocator<Type>;
+#else
+    template<class Type>
+    using _grid_default_alloc = std::allocator<Type>;
+#endif // MKL_USE_MKL
+
+
+template<typename Type, size_t _rows, size_t _cols, typename Container = std::vector<Type, _grid_default_alloc<Type>>>
 struct grid;
 
 template<typename Type, size_t _rows, size_t _cols, typename Allocator>
@@ -52,6 +63,10 @@ public:
     static constexpr size_type size() noexcept { return _rows * _cols; }
     static constexpr size_type rows() noexcept { return _rows; }
     static constexpr size_type cols() noexcept { return _cols; }
+
+public:
+    constexpr       value_type* data()       { return _underlying.data(); }
+    constexpr const value_type* data() const { return _underlying.data(); }
 
 private:
     _underlying_t _underlying;

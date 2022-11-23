@@ -28,11 +28,6 @@ struct test_func
     }
 };
 
-double logd(double value)
-{
-    return std::log(value);
-}
-
 int main()
 {
     //For pretty plots
@@ -83,8 +78,7 @@ int main()
         
         //Calculate machine imprecision point
         size_t stop_index = 1;
-        while (stop_index < samples)
-        {
+        while (stop_index < samples) {
             if (max_abs_errs[stop_index] >= max_abs_errs[stop_index - 1])
                 break;
             else
