@@ -1,5 +1,5 @@
-#ifndef UTILITIES_IO_HPP_INCLUDED
-#define UTILITIES_IO_HPP_INCLUDED
+#ifndef LLPS_UTILITIES_IO_HPP_INCLUDED
+#define LLPS_UTILITIES_IO_HPP_INCLUDED
 
 #include <iterator> //For access to std::iter_value_t and iterator concepts
 #include <fstream>  //For access to std::ofstream
@@ -7,7 +7,7 @@
 #include <cassert>  //For access to assert macro
 #include <cstddef>  //For access to fixed size types
 
-namespace utilities {
+namespace llps::utilities {
 
     template<typename Type>
     inline void serialise_to_binary(std::ofstream& stream, const Type& value)
@@ -62,4 +62,4 @@ namespace utilities {
     }
 }
 
-#endif // !UTILITIES_IO_HPP_INCLUDED
+#endif // !LLPS_UTILITIES_IO_HPP_INCLUDED

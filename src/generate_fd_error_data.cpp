@@ -38,7 +38,7 @@ int main()
 
     std::ofstream file(LLPS_OUTPUT_DIR"finite_difference_accuracy.dat", std::ios::binary);
  
-    utilities::plot_header plot_header;
+    llps::utilities::plot_header plot_header;
     plot_header.title   = "log-log plot of max absolute error of $\\nabla^2 \\phi$ using finite differences.\n$\\phi(x, y) = \\cos(x) + \\sin(x)$";
     plot_header.x_label = "$\\Delta x = \\Delta y$";
     plot_header.y_label = "max absolute error";
@@ -46,9 +46,9 @@ int main()
     plot_header.y_scale = "log";
 
     constexpr size_t lines_count = 7;
-    utilities::serialise_plot_header(file, lines_count, plot_header);
+    llps::utilities::serialise_plot_header(file, lines_count, plot_header);
 
-    utilities::constexpr_for<lines_count>([&]<size_t I>(utilities::size_t_constant<I>)
+    llps::utilities::constexpr_for<lines_count>([&]<size_t I>(llps::utilities::size_t_constant<I>)
     {
         static constexpr size_t order = 2 * (I+1);
         static constexpr size_t samples = 30;
@@ -58,19 +58,19 @@ int main()
         delta_xs.reserve(samples);
         max_abs_errs.reserve(samples);
 
-        utilities::constexpr_for<samples>([&]<size_t J>(utilities::size_t_constant<J>)
+        llps::utilities::constexpr_for<samples>([&]<size_t J>(llps::utilities::size_t_constant<J>)
         {
             static constexpr size_t rows = 16 + J * 10;
             static constexpr double dx = (x_max - x_min) / rows;
 
-            grid<double, rows, rows> expected;
-            grid<double, rows, rows> phi;
-            apply_equi2D(expected, x_min, x_max, test_func::dphi);
-            apply_equi2D(phi, x_min, x_max, test_func::phi);
+            llps::grid<double, rows, rows> expected;
+            llps::grid<double, rows, rows> phi;
+            llps::apply_equi2D(expected, x_min, x_max, test_func::dphi);
+            llps::apply_equi2D(phi, x_min, x_max, test_func::phi);
 
-            auto actual = calculus::laplacian_central_fd<order>(phi, dx, dx);
+            auto actual = llps::calculus::laplacian_central_fd<order>(phi, dx, dx);
             
-            double max_abs_err = utilities::max_abs_error(expected.begin(), expected.end(), actual.begin(), actual.end());
+            double max_abs_err = llps::utilities::max_abs_error(expected.begin(), expected.end(), actual.begin(), actual.end());
 
             delta_xs.push_back(dx);
             max_abs_errs.push_back(max_abs_err);
@@ -85,7 +85,7 @@ int main()
                 ++stop_index;
         }
 
-        auto fit = utilities::poly_fit1D(
+        auto fit = llps::utilities::poly_fit1D(
             delta_xs.begin(), 
             delta_xs.begin() + stop_index,
             max_abs_errs.begin(), 
@@ -94,16 +94,16 @@ int main()
 
         std::cout << "Actual error order: (expected: " << std::setw(2) << order << ") x^" << fit.gradient << std::endl;
 
-        utilities::line_header line_header;
+        llps::utilities::line_header line_header;
         line_header.colour = colours[I];
         line_header.label  = "O($\\Delta x^{"s + std::to_string(order) + "}$)"s;
 
-        utilities::serialise_line_header<double, double>(file, samples, line_header);
+        llps::utilities::serialise_line_header<double, double>(file, samples, line_header);
 
         for (double dx : delta_xs)
-            utilities::serialise_to_binary(file, dx);
+            llps::utilities::serialise_to_binary(file, dx);
         for (double errors : max_abs_errs)
-            utilities::serialise_to_binary(file, errors);
+            llps::utilities::serialise_to_binary(file, errors);
     });
 
     file.close();

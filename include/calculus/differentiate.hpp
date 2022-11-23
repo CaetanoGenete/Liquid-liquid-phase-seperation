@@ -1,5 +1,5 @@
-#ifndef CALCULUS_DIFFERENTIATE_HPP_INCLUDED
-#define CALCULUS_DIFFERENTIATE_HPP_INCLUDED
+#ifndef LLPS_CALCULUS_DIFFERENTIATE_HPP_INCLUDED
+#define LLPS_CALCULUS_DIFFERENTIATE_HPP_INCLUDED
 
 #include <concepts> // For access to iterator concepts
 #include <array>
@@ -9,7 +9,7 @@
 #include "fourier_spectral.hpp"
 #include "../grid.hpp"
 
-namespace calculus {
+namespace llps::calculus {
     /*
     template<typename Type, size_t _rows, size_t _cols, typename Container, std::integral IntType, size_t _kernel_size>
     constexpr auto laplacian_fd(
@@ -45,12 +45,12 @@ namespace calculus {
     */
 
     template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container>
-    constexpr auto laplacian_central_fd(const grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
+    constexpr auto laplacian_central_fd(const llps::grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
     {
         static constexpr auto stencil = central_fd_stencil<error_order, Type>(2);
         static constexpr size_t offset = error_order / 2;
 
-        grid<Type, _rows, _cols, Container> dphi;
+        llps::grid<Type, _rows, _cols, Container> dphi;
 
         for (size_t row = 0; row < _rows; ++row)
         {
@@ -78,7 +78,7 @@ namespace calculus {
 
 #include "fftw/fftw3.h"
 
-namespace calculus {
+namespace llps::calculus {
 
     template<typename Type>
     struct as_ftw_complex;
@@ -95,8 +95,8 @@ namespace calculus {
 
     template<std::floating_point Type, size_t _rows, size_t _cols, class Container1, class Container2>
     void laplacian_spectral(
-        grid<Type, _rows, _cols, Container1>& phi,
-        grid<Type, _rows, _cols, Container2>& dphi,
+        llps::grid<Type, _rows, _cols, Container1>& phi,
+        llps::grid<Type, _rows, _cols, Container2>& dphi,
         Type dx, Type dy)
     {
         using complex_type = as_ftw_complex_t<Type>;
@@ -111,7 +111,7 @@ namespace calculus {
         fftw_plan back_plan = fftw_plan_dft_c2r_2d(_rows, _cols, phi_hat, dphi.data(), FFTW_PATIENT);
         fftw_execute(forw_plan);
 
-        static constexpr auto row_indicies = calculus::row_freq_indicies<_rows>();
+        static constexpr auto row_indicies = row_freq_indicies<_rows>();
 
         size_t index = 0;
         for (size_t row : row_indicies)
@@ -135,7 +135,7 @@ namespace calculus {
         fftw_free(phi_hat);
     }
     template<std::floating_point Type, size_t _rows, size_t _cols, class Container>
-    void laplacian_spectral(grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
+    void laplacian_spectral(llps::grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
     {
         laplacian_spectral(phi, phi, dx, dy);
     }
@@ -144,4 +144,4 @@ namespace calculus {
 
 #endif // LLPS_USE_MKL
 
-#endif // !CALCULUS_DIFFERENTIATE_HPP_INCLUDED
+#endif // !LLPS_CALCULUS_DIFFERENTIATE_HPP_INCLUDED

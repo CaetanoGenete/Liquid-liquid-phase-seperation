@@ -1,12 +1,12 @@
-#ifndef CALCULUS_FINITE_DIFFERENCE_HPP_INCLUDED
-#define CALCULUS_FINITE_DIFFERENCE_HPP_INCLUDED
+#ifndef LLPS_CALCULUS_FINITE_DIFFERENCE_HPP_INCLUDED
+#define LLPS_CALCULUS_FINITE_DIFFERENCE_HPP_INCLUDED
 
 #include <array>    //Access to std::array
 #include <utility>  //Access to std::swap
 #include <iterator> //Access to std::iter_value_t and iterator concepts
 #include <concepts> //Access to std::signed_integral concept
 
-namespace calculus {
+namespace llps::calculus {
 
     template<std::forward_iterator It>
     constexpr auto elem_sym_poly(size_t k, It first, It last)

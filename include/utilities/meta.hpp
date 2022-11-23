@@ -1,11 +1,11 @@
-#ifndef UTILITIES_META_HPP_INCLUDED
-#define UTILITIES_META_HPP_INCLUDED
+#ifndef LLPS_UTILITIES_META_HPP_INCLUDED
+#define LLPS_UTILITIES_META_HPP_INCLUDED
 
 #include <utility>     //For access to std::index_sequence
 #include <functional>  //For access to std::invoke
 #include <type_traits> //For access to std::integral_constant
 
-namespace utilities {
+namespace llps::utilities {
 
     template<size_t I>
     using size_t_constant = std::integral_constant<size_t, I>;
@@ -30,4 +30,4 @@ namespace utilities {
 
 }
 
-#endif // !UTILITIES_META_HPP_INCLUDED
+#endif // !LLPS_UTILITIES_META_HPP_INCLUDED

@@ -1,10 +1,10 @@
-#ifndef CALCULUS_FOURIER_SPECTRAL_HPP_INCLUDED
-#define CALCULUS_FOURIER_SPECTRAL_HPP_INCLUDED
+#ifndef LLPS_CALCULUS_FOURIER_SPECTRAL_HPP_INCLUDED
+#define LLPS_CALCULUS_FOURIER_SPECTRAL_HPP_INCLUDED
 
 #include <array>
 #include <cstddef>
 
-namespace calculus {
+namespace llps::calculus {
 
     template<size_t _rows>
     consteval std::array<uint32_t, _rows> row_freq_indicies()
@@ -22,4 +22,4 @@ namespace calculus {
 
 }
 
-#endif // !CALCULUS_FOURIER_SPECTRAL_HPP_INCLUDED
+#endif // !LLPS_CALCULUS_FOURIER_SPECTRAL_HPP_INCLUDED

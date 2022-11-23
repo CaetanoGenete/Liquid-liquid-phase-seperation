@@ -1,12 +1,12 @@
-#ifndef UTILS_DATA_ANALYTICS_HPP_INCLUDED
-#define UTILS_DATA_ANALYTICS_HPP_INCLUDED
+#ifndef LLPS_UTILITIES_DATA_ANALYTICS_HPP_INCLUDED
+#define LLPS_UTILITIES_DATA_ANALYTICS_HPP_INCLUDED
 
 #include <iterator>   //Access to std::iter_value_t and iterator concepts
 #include <assert.h>   //Access to assert macro
 #include <cmath>      //Access to std::abs
 #include <functional> //Access to std::invoke
 
-namespace utilities {
+namespace llps::utilities {
 
     template<typename Type>
     struct linear_regression_pair
@@ -74,4 +74,4 @@ namespace utilities {
     }
 }
 
-#endif // !UTILS_DATA_ANALYTICS_HPP_INCLUDED
+#endif // !LLPS_UTILITIES_DATA_ANALYTICS_HPP_INCLUDED
