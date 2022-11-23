@@ -46,7 +46,7 @@ endif()
 
 #Optional features
 option(LLPS_BUILD_TESTS "Builds and runs tests.")
-option(LLPS_USE_EIGEN "Uses eigen arrays.")
+#option(LLPS_USE_EIGEN "Uses eigen arrays.")
 option(LLPS_USE_MKL "Use MKL FFT.")
 
 if(LLPS_BUILD_TESTS)

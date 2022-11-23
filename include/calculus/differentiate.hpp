@@ -93,8 +93,11 @@ namespace calculus {
     template<typename Type>
     using as_ftw_complex_t = typename as_ftw_complex<Type>::value_type;
 
-    template<std::floating_point Type, size_t _rows, size_t _cols, class Container>
-    void laplacian_spectral(grid<double, _rows, _cols, Container>& phi, Type dx, Type dy)
+    template<std::floating_point Type, size_t _rows, size_t _cols, class Container1, class Container2>
+    void laplacian_spectral(
+        grid<Type, _rows, _cols, Container1>& phi,
+        grid<Type, _rows, _cols, Container2>& dphi,
+        Type dx, Type dy)
     {
         using complex_type = as_ftw_complex_t<Type>;
 
@@ -105,7 +108,7 @@ namespace calculus {
         Type y_freq_elem = 2. * std::numbers::pi / (_rows * dy);
 
         fftw_plan forw_plan = fftw_plan_dft_r2c_2d(_rows, _cols, phi.data(), phi_hat, FFTW_PATIENT);
-        fftw_plan back_plan = fftw_plan_dft_c2r_2d(_rows, _cols, phi_hat, phi.data(), FFTW_PATIENT);
+        fftw_plan back_plan = fftw_plan_dft_c2r_2d(_rows, _cols, phi_hat, dphi.data(), FFTW_PATIENT);
         fftw_execute(forw_plan);
 
         static constexpr auto row_indicies = calculus::row_freq_indicies<_rows>();
@@ -131,6 +134,12 @@ namespace calculus {
         fftw_destroy_plan(back_plan);
         fftw_free(phi_hat);
     }
+    template<std::floating_point Type, size_t _rows, size_t _cols, class Container>
+    void laplacian_spectral(grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
+    {
+        laplacian_spectral(phi, phi, dx, dy);
+    }
+
 }
 
 #endif // LLPS_USE_MKL
