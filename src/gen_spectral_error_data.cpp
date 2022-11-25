@@ -19,12 +19,13 @@ struct test_func
 {
     static double phi(double x, double y)
     {
-        return std::cos(x) + std::sin(y);
+        return std::exp(std::cos(x) + std::sin(y));
     }
 
     static double dphi(double x, double y)
     {
-        return -phi(x, y);
+
+        return phi(x, y) * (std::cos(y) * std::cos(y) + std::sin(x) * std::sin(x) - std::sin(y) - std::cos(x));
     }
 };
 
@@ -45,13 +46,13 @@ int main()
     plot_header.title = "Plot of max absolute error of $\\nabla^2 \\phi$ using fourier spectral method.\n$\\phi(x, y) = \\cos(x) + \\sin(x)$";
     plot_header.x_label = "$\\Delta x = \\Delta y$";
     plot_header.y_label = "max absolute error";
-    //plot_header.x_scale = "log";
-    //plot_header.y_scale = "log";
+    plot_header.x_scale = "log";
+    plot_header.y_scale = "log";
 
     constexpr size_t lines_count = 1;
     llps::utilities::serialise_plot_header(file, lines_count, plot_header);
 
-    static constexpr size_t samples = 30;
+    static constexpr size_t samples = 10;
 
     std::vector<value_type> delta_xs;
     std::vector<value_type> max_abs_errs;
@@ -60,7 +61,7 @@ int main()
 
     llps::utilities::constexpr_for<samples>([&]<size_t I>(llps::utilities::size_t_constant<I>)
     {
-        static constexpr size_t rows = 16 + I * 10;
+        static constexpr size_t rows = 1 << (I + 2);
         static constexpr value_type dx = (x_max - x_min) / rows;
 
         llps::grid<value_type, rows, rows, fftw_vector_t> expected;
@@ -71,6 +72,8 @@ int main()
         llps::calculus::laplacian_spectral(phi, dx, dx);
 
         value_type max_abs_err = llps::utilities::max_abs_error(expected.begin(), expected.end(), phi.begin(), phi.end());
+
+        std::cout << max_abs_err << std::endl;
 
         delta_xs.push_back(dx);
         max_abs_errs.push_back(max_abs_err);

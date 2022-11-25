@@ -72,6 +72,22 @@ namespace llps::utilities {
 
         return result;
     }
+
+    template<std::input_iterator InputIt1, std::input_iterator InputIt2>
+    constexpr auto d2_squared_error(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2)
+    {
+        auto result = std::pow(*first1 - *first2, 2);
+        ++first1;
+        ++first2;
+
+        for (; first1 != last1 && first2 != last2; ++first1, ++first2)
+            result += std::pow(*first1 - *first2, 2);
+
+        //Function is undefined for ranges of different size
+        assert(first1 == last1 && first2 == last2);
+
+        return result;
+    }
 }
 
 #endif // !LLPS_UTILITIES_DATA_ANALYTICS_HPP_INCLUDED

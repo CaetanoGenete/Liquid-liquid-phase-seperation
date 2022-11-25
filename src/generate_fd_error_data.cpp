@@ -19,12 +19,13 @@ struct test_func
 {
     static double phi(double x, double y)
     {
-        return std::cos(x) + std::sin(y);
+        return std::exp(std::cos(x) + std::sin(y));
     }
 
     static double dphi(double x, double y)
     {
-        return -phi(x, y);
+
+        return phi(x, y) * (std::cos(y) * std::cos(y) + std::sin(x) * std::sin(x) - std::sin(y) - std::cos(x));
     }
 };
 
@@ -39,7 +40,7 @@ int main()
     std::ofstream file(LLPS_OUTPUT_DIR"finite_difference_accuracy.dat", std::ios::binary);
  
     llps::utilities::plot_header plot_header;
-    plot_header.title   = "log-log plot of max absolute error of $\\nabla^2 \\phi$ using finite differences.\n$\\phi(x, y) = \\cos(x) + \\sin(x)$";
+    plot_header.title   = "log-log plot of max absolute error of $\\nabla^2 \\phi$ using finite differences.\n$\\phi(x, y) = e^{\\cos(x) + \\sin(x)}$";
     plot_header.x_label = "$\\Delta x = \\Delta y$";
     plot_header.y_label = "max absolute error";
     plot_header.x_scale = "log";
