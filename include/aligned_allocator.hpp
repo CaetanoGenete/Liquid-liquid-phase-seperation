@@ -1,8 +1,9 @@
 #ifndef LLPS_ALIGNED_ALLOCATOR_HPP_INCLUDED
 #define LLPS_ALIGNED_ALLOCATOR_HPP_INCLUDED
 
-#ifdef LLPS_USE_MKL
 #include <memory>
+
+#ifdef LLPS_USE_MKL
 
 #include "fftw/fftw3.h"
 

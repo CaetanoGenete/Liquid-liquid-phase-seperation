@@ -24,7 +24,6 @@ struct test_func
 
     static double dphi(double x, double y)
     {
-
         return phi(x, y) * (std::cos(y) * std::cos(y) + std::sin(x) * std::sin(x) - std::sin(y) - std::cos(x));
     }
 };
@@ -43,7 +42,7 @@ int main()
     std::ofstream file(LLPS_OUTPUT_DIR"spectral_accuracy.dat", std::ios::binary);
 
     llps::utilities::plot_header plot_header;
-    plot_header.title = "Plot of max absolute error of $\\nabla^2 \\phi$ using fourier spectral method.\n$\\phi(x, y) = \\cos(x) + \\sin(x)$";
+    plot_header.title   = "Plot of max absolute error of $\\nabla^2 \\phi$ using fourier spectral method.\n$\\phi(x, y) = e^{\\cos(x) + \\sin(x)}$";
     plot_header.x_label = "$\\Delta x = \\Delta y$";
     plot_header.y_label = "max absolute error";
     plot_header.x_scale = "log";
@@ -73,15 +72,12 @@ int main()
 
         value_type max_abs_err = llps::utilities::max_abs_error(expected.begin(), expected.end(), phi.begin(), phi.end());
 
-        std::cout << max_abs_err << std::endl;
-
         delta_xs.push_back(dx);
         max_abs_errs.push_back(max_abs_err);
     });
 
     llps::utilities::line_header line_header;
     line_header.colour = "red";
-    //line_header.label = "O($\\Delta x^{"s + std::to_string(order) + "}$)"s;
 
     llps::utilities::serialise_line_header<value_type, value_type>(file, samples, line_header);
 

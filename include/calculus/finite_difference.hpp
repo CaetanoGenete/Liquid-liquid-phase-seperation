@@ -5,6 +5,7 @@
 #include <utility>  //Access to std::swap
 #include <iterator> //Access to std::iter_value_t and iterator concepts
 #include <concepts> //Access to std::signed_integral concept
+#include <vector>
 
 namespace llps::calculus {
 
@@ -55,6 +56,7 @@ namespace llps::calculus {
 
         return result;
     }
+
 
     template<size_t error_order>
     consteval auto central_indicies()

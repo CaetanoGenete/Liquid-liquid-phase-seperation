@@ -60,6 +60,41 @@ namespace llps::utilities {
 
         serialise_to_binary<uint64_t>(stream, samples_count);
     }
+
+    template<std::floating_point ValueType, std::floating_point SpaceType>
+    struct video_header
+    {
+        std::pair<ValueType, ValueType> min_max = {0., 0.};
+        SpaceType dx = 1.;
+        SpaceType dy = 1.;
+
+        uint32_t interval = 20;
+    };
+
+    template<std::floating_point ValueType, std::floating_point SpaceType>
+    inline void serialise_video_header(
+        std::ofstream& stream,
+        size_t width, size_t height,
+        size_t frames,
+        video_header<ValueType, SpaceType> meta = {})
+    {
+        serialise_to_binary<uint8_t>(stream, sizeof(ValueType));
+        //serialise_to_binary<uint8_t>(stream, sizeof(TimeType));
+        serialise_to_binary<uint8_t>(stream, sizeof(SpaceType));
+
+        serialise_to_binary(stream, meta.min_max.first);
+        serialise_to_binary(stream, meta.min_max.second);
+        serialise_to_binary(stream, meta.dx);
+        serialise_to_binary(stream, meta.dy);
+
+        serialise_to_binary<uint64_t>(stream, width);
+        serialise_to_binary<uint64_t>(stream, height);
+
+        serialise_to_binary(stream, meta.interval);
+        
+        serialise_to_binary<uint64_t>(stream, frames);
+
+    }
 }
 
 #endif // !LLPS_UTILITIES_IO_HPP_INCLUDED

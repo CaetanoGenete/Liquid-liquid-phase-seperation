@@ -20,7 +20,8 @@ set(LLPS_HEADERS
     "include/calculus/fourier_spectral.hpp"
     "include/utilities/io.hpp"
     "include/utilities/data_analytics.hpp"
-    "include/utilities/meta.hpp")
+    "include/utilities/meta.hpp"
+    "include/utilities/timer.hpp")
 
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${LLPS_HEADERS})
 

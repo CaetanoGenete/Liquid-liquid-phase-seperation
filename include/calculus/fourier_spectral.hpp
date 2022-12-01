@@ -5,16 +5,15 @@
 #include <cstddef>
 
 namespace llps::calculus {
-
     template<size_t _rows>
-    consteval std::array<uint32_t, _rows> row_freq_indicies()
+    consteval std::array<int32_t, _rows> row_freq_indicies()
     {
-        std::array<uint32_t, _rows> result{};
-        result[_rows / 2] = _rows / 2;
+        static_assert(_rows % 2 == 0, "_rows must be even.");
 
-        for (size_t i = 0; i < _rows / 2; ++i) {
+        std::array<int32_t, _rows> result;
+        for (int32_t i = 0; i < _rows / 2; ++i) {
             result[i] = i;
-            result[_rows - 1 - i] = i + 1;
+            result[_rows - 1 - i] = -i-1;
         }
 
         return result;

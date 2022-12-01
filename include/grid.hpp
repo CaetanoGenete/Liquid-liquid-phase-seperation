@@ -3,6 +3,7 @@
 
 #include <vector>      //Access to std::vector
 #include <type_traits> //Access to std::is_same_v
+#include <algorithm>   //Access to std::min
 
 #include "aligned_allocator.hpp"
 
@@ -27,13 +28,13 @@ namespace llps {
         using _underlying_t = std::vector<Type, Allocator>;
 
     public:
-        using value_type = typename _underlying_t::value_type;
-        using reference = typename _underlying_t::reference;
+        using value_type      = typename _underlying_t::value_type;
+        using reference       = typename _underlying_t::reference;
         using const_reference = typename _underlying_t::const_reference;
-        using size_type = typename _underlying_t::size_type;
+        using size_type       = typename _underlying_t::size_type;
 
-        using iterator = typename _underlying_t::iterator;
-        using const_iterator = typename _underlying_t::const_iterator;
+        using iterator        = typename _underlying_t::iterator;
+        using const_iterator  = typename _underlying_t::const_iterator;
 
         static_assert(std::is_same_v<Type, value_type>, "Container type mismatch!");
 

@@ -4,62 +4,39 @@
 #include <concepts> // For access to iterator concepts
 #include <array>
 #include <type_traits>
+#include <numbers>
 
 #include "finite_difference.hpp"
 #include "fourier_spectral.hpp"
 #include "../grid.hpp"
 
+#if defined(_MSC_VER)
+    #define LLPS_FORCE_INLINE __forceinline
+#elif defined(__GNUC__)
+    #define LLPS_FORCE_INLINE __attribute__((always_inline))
+#endif // _MSC_VER
+
+
 namespace llps::calculus {
-    /*
-    template<typename Type, size_t _rows, size_t _cols, typename Container, std::integral IntType, size_t _kernel_size>
-    constexpr auto laplacian_fd(
-        const grid<Type, _rows, _cols, Container>& phi, 
-        const std::array<IntType, _kernel_size>& samples,
+
+    template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container1, typename Container2>
+    LLPS_FORCE_INLINE constexpr void laplacian_central_fd(
+        const llps::grid<Type, _rows, _cols, Container1>& phi, 
+              llps::grid<Type, _rows, _cols, Container2>& dphi,
         Type dx, Type dy)
-    {
-        static auto stencil = fd_stencil<Type>(2, samples);
-        static constexpr size_t offset = _kernel_size / 2;
-
-        grid<Type, _rows, _cols, Container> dphi;
-
-        for (size_t row = 0; row < _rows; ++row)
-        {
-            size_t offset_row = (row + offset) % _rows;;
-
-            for (size_t col = 0; col < _cols; ++col)
-            {
-                size_t offset_col = (col + offset) % _cols;
-
-                for (size_t i = 0; i < _kernel_size; ++i) {
-                    //Using 2D index here to remain as general as possible
-                    dphi(offset_row, offset_col) += (
-                        phi(offset_row, (col + i) % _cols) / (dx * dx) +
-                        phi((row + i) % _rows, offset_col) / (dy * dy)
-                    ) * stencil[i];
-                }
-            }
-        }
-
-        return dphi;
-    }
-    */
-
-    template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container>
-    constexpr auto laplacian_central_fd(const llps::grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
     {
         static constexpr auto stencil = central_fd_stencil<error_order, Type>(2);
         static constexpr size_t offset = error_order / 2;
 
-        llps::grid<Type, _rows, _cols, Container> dphi;
-
         for (size_t row = 0; row < _rows; ++row)
         {
-            size_t offset_row = (row + offset) % _rows;;
+            size_t offset_row = (row + offset) % _rows;
 
             for (size_t col = 0; col < _cols; ++col)
             {
                 size_t offset_col = (col + offset) % _cols;
 
+                dphi(offset_row, offset_col) = 0.;
                 for (size_t i = 0; i <= error_order; ++i) {
                     //Using 2D index here to remain as general as possible
                     dphi(offset_row, offset_col) += (
@@ -69,6 +46,13 @@ namespace llps::calculus {
                 }
             }
         }
+    }
+
+    template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container1>
+    LLPS_FORCE_INLINE constexpr auto laplacian_central_fd(const llps::grid<Type, _rows, _cols, Container1>& phi, Type dx, Type dy)
+    {
+        llps::grid<Type, _rows, _cols, Container1> dphi;
+        laplacian_central_fd<error_order>(phi, dphi, dx, dy);
 
         return dphi;
     }
@@ -83,15 +67,50 @@ namespace llps::calculus {
     template<typename Type>
     struct as_ftw_complex;
 
-    template<> 
-    struct as_ftw_complex<float> { using value_type = fftwf_complex; };
-    template<>
-    struct as_ftw_complex<double> { using value_type = fftw_complex; };
-    template<>
-    struct as_ftw_complex<long double> { using value_type = fftwl_complex; };
+    template<> struct as_ftw_complex<float> { using value_type = fftwf_complex; };
+    template<> struct as_ftw_complex<double> { using value_type = fftw_complex; };
+    template<> struct as_ftw_complex<long double> { using value_type = fftwl_complex; };
+
+    template<typename Type>
+    struct complex_base;
+
+    template<> struct complex_base<fftwf_complex> { using value_type = float; };
+    template<> struct complex_base<fftw_complex> { using value_type = double; };
+    template<> struct complex_base<fftwl_complex> { using value_type = long double; };
 
     template<typename Type>
     using as_ftw_complex_t = typename as_ftw_complex<Type>::value_type;
+
+    template<typename Type>
+    using complex_base_t = typename complex_base<Type>::value_type;
+
+    template<size_t _rows, size_t _cols, std::input_iterator It>
+    void mult_herm_nfreq_squared(
+        It first, 
+        complex_base_t<std::iter_value_t<It>> dx,
+        complex_base_t<std::iter_value_t<It>> dy)
+    {
+        using type = complex_base_t<std::iter_value_t<It>>;
+
+        type x_freq_elem = 2. * std::numbers::pi / (_cols * dx);
+        type y_freq_elem = 2. * std::numbers::pi / (_rows * dy);
+
+        static constexpr auto row_indicies = row_freq_indicies<_rows>();
+
+        for (int32_t row : row_indicies)
+        {
+            type kappa_y = y_freq_elem * row;
+
+            for (size_t col = 0; col <= _cols / 2; ++col, ++first)
+            {
+                type kappa_x = x_freq_elem * col;
+                type kappa_xy = (-kappa_x * kappa_x - kappa_y * kappa_y) / (_rows * _cols);
+
+                (*first)[0] *= kappa_xy;
+                (*first)[1] *= kappa_xy;
+            }
+        }
+    }
 
     template<std::floating_point Type, size_t _rows, size_t _cols, class Container1, class Container2>
     void laplacian_spectral(
@@ -104,36 +123,18 @@ namespace llps::calculus {
         static constexpr size_t phi_hat_size = _rows * (_cols/2 + 1);
         complex_type* phi_hat = static_cast<complex_type*>(fftw_malloc(sizeof(complex_type) * phi_hat_size));
 
-        Type x_freq_elem = 2. * std::numbers::pi / (_cols * dx);
-        Type y_freq_elem = 2. * std::numbers::pi / (_rows * dy);
-
         fftw_plan forw_plan = fftw_plan_dft_r2c_2d(_rows, _cols, phi.data(), phi_hat, FFTW_PATIENT);
         fftw_plan back_plan = fftw_plan_dft_c2r_2d(_rows, _cols, phi_hat, dphi.data(), FFTW_PATIENT);
+        
         fftw_execute(forw_plan);
-
-        static constexpr auto row_indicies = row_freq_indicies<_rows>();
-
-        size_t index = 0;
-        for (size_t row : row_indicies)
-        {
-            Type kappa_y = y_freq_elem * row;
-
-            for (size_t col = 0; col <= _cols / 2; ++col, ++index)
-            {
-                Type kappa_x = x_freq_elem * col;
-                Type kappa_xy = (-kappa_x * kappa_x - kappa_y * kappa_y)/ (_rows * _cols);
-
-                phi_hat[index][0] *= kappa_xy;
-                phi_hat[index][1] *= kappa_xy;
-            }
-        }
-
+        mult_herm_nfreq_squared<_rows, _cols>(phi_hat, dx, dy);
         fftw_execute(back_plan);
 
         fftw_destroy_plan(forw_plan);
         fftw_destroy_plan(back_plan);
         fftw_free(phi_hat);
     }
+
     template<std::floating_point Type, size_t _rows, size_t _cols, class Container>
     void laplacian_spectral(llps::grid<Type, _rows, _cols, Container>& phi, Type dx, Type dy)
     {
