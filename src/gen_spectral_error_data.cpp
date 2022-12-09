@@ -14,15 +14,17 @@
 
 //For access to s suffix
 using namespace std::literals::string_literals;
+//Use double precision for these plots
+using value_type = double;
 
 struct test_func
 {
-    static double phi(double x, double y)
+    static value_type phi(value_type x, value_type y)
     {
         return std::exp(std::cos(x) + std::sin(y));
     }
 
-    static double dphi(double x, double y)
+    static value_type dphi(value_type x, value_type y)
     {
         return phi(x, y) * (std::cos(y) * std::cos(y) + std::sin(x) * std::sin(x) - std::sin(y) - std::cos(x));
     }
@@ -30,7 +32,6 @@ struct test_func
 
 int main()
 {   
-    using value_type = double;
     using fftw_vector_t = std::vector<value_type, llps::fftw_allocator<value_type>>;
 
     //For pretty plots
@@ -63,8 +64,9 @@ int main()
         static constexpr size_t rows = 1 << (I + 2);
         static constexpr value_type dx = (x_max - x_min) / rows;
 
-        llps::grid<value_type, rows, rows, fftw_vector_t> expected;
-        llps::grid<value_type, rows, rows, fftw_vector_t> phi;
+        using grid_t = llps::grid<value_type, rows, rows, fftw_vector_t>;
+
+        grid_t phi, expected;
         llps::apply_equi2D(expected, x_min, x_max, test_func::dphi);
         llps::apply_equi2D(phi, x_min, x_max, test_func::phi);
 

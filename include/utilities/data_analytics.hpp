@@ -16,7 +16,11 @@ namespace llps::utilities {
     };
 
     template<typename XIt, typename YIt, class XProj = std::identity, class YProj = std::identity>
-    constexpr auto poly_fit1D(XIt first_x, XIt last_x, YIt first_y, YIt last_y, XProj x_proj = {}, YProj y_proj = {})
+    constexpr auto poly_fit1D(
+        XIt first_x, XIt last_x, 
+        YIt first_y, YIt last_y, 
+        XProj x_proj = {}, 
+        YProj y_proj = {})
     {
         using x_value = std::iter_value_t<XIt>;
         using y_value = std::iter_value_t<YIt>;
@@ -33,12 +37,12 @@ namespace llps::utilities {
             y_bar += std::invoke(y_proj, *y_it);
         }
 
+        //Ranges must be of the same length
+        assert(x_it == last_x && y_it == last_y);
+
         //Calculate means
         x_bar /= size;
         y_bar /= size;
-
-        //Ranges must be of the same length
-        assert(x_it == last_x && y_it == last_y);
 
         x_it = first_x;
         y_it = first_y;

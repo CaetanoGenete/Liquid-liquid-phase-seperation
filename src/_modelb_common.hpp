@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fstream>
 #include <string>
+#include <numeric>
 
 #include "calculus/differentiate.hpp"
 #include "utilities/io.hpp"
@@ -41,12 +42,15 @@ private:
 
 void save_to_file(const char* file_name, const std::vector<state_type>& data, std::string title)
 {
+    using value_type = state_type::value_type;
+
     //Calculate minimum and maximum values
-    auto [vmin, vmax] = std::ranges::minmax(data.front());
+    auto vmin = std::numeric_limits<value_type>::max();
+    auto vmax = std::numeric_limits<value_type>::min();
     for (auto& frame : data) {
-        auto [phi_min, phi_max] = std::ranges::minmax(frame);
-        vmin = std::min(phi_min, vmin);
-        vmax = std::max(phi_max, vmax);
+        auto [frame_min, frame_max] = std::ranges::minmax(frame);
+        vmin = std::min(frame_min, vmin);
+        vmax = std::max(frame_max, vmax);
     }
 
     std::ofstream file(file_name, std::ios::binary);
@@ -58,7 +62,7 @@ void save_to_file(const char* file_name, const std::vector<state_type>& data, st
 
     llps::utilities::serialise_plot_header(file, 1, plot_header);
 
-    llps::utilities::video_header<state_type::value_type, state_type::value_type> video_header;
+    llps::utilities::video_header<value_type, value_type> video_header;
     video_header.min_max = { vmin, vmax };
 
     llps::utilities::serialise_video_header(file, state_type::cols(), state_type::rows(), data.size(), video_header);

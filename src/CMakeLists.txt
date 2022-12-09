@@ -10,6 +10,16 @@ target_compile_definitions(simulate_modelb_fd PRIVATE ${LLPS_OUTFILE_DEFINE})
 #Temporary remove at some point
 target_compile_options(simulate_modelb_fd PRIVATE "/arch:AVX512")
 
+add_executable(coupled_modelb_fd "coupled_modelb.cpp" "_modelb_common.hpp")
+target_link_libraries(coupled_modelb_fd PRIVATE LLPS_BASIC)
+target_compile_definitions(coupled_modelb_fd PRIVATE ${LLPS_OUTFILE_DEFINE})
+#Temporary remove at some point
+target_compile_options(coupled_modelb_fd PRIVATE "/arch:AVX512")
+
+add_executable(test_view "test_view.cpp" "_modelb_common.hpp")
+target_link_libraries(test_view PRIVATE LLPS_BASIC)
+target_compile_definitions(test_view PRIVATE ${LLPS_OUTFILE_DEFINE})
+
 if(LLPS_USE_MKL)
     add_executable(gen_spectral_error_data "gen_spectral_error_data.cpp")
     target_link_libraries(gen_spectral_error_data PRIVATE LLPS_MKL)

@@ -35,10 +35,11 @@ int main()
     //Integration paramaters
     constexpr double t_min = 0.;
     constexpr double t_max = 1000.;
+    constexpr double dt = 1.;
 
+    //Sampling 
     constexpr double sample_int = 1.;
     constexpr size_t samples = static_cast<size_t>((t_max - t_min)/sample_int) + 1;
-    constexpr double dt = 1.;
 
     std::vector<state_type> result;
     result.reserve(samples);
@@ -49,6 +50,7 @@ int main()
         odeint::integrate_adaptive(stepper, modelb<6>(a, b, k), phi0, t_min, t_max, dt, [&](const state_type& phi, double t) {
             if (t - last_t >= sample_int) {
                 std::cout << "Progress: " << std::setprecision(2) << t << "/" << std::fixed << t_max << "\r";
+
                 result.push_back(phi);
                 last_t += sample_int;
             }

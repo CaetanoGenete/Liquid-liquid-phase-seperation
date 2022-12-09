@@ -16,7 +16,6 @@
     #define LLPS_FORCE_INLINE __attribute__((always_inline))
 #endif // _MSC_VER
 
-
 namespace llps::calculus {
 
     template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container1, typename Container2>
@@ -48,10 +47,13 @@ namespace llps::calculus {
         }
     }
 
-    template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container1>
-    LLPS_FORCE_INLINE constexpr auto laplacian_central_fd(const llps::grid<Type, _rows, _cols, Container1>& phi, Type dx, Type dy)
+    template<size_t error_order, class Meta>
+    LLPS_FORCE_INLINE constexpr auto laplacian_central_fd(
+        const llps::_basic_grid<Meta>& phi, 
+        const llps::grid_value_t<Meta> dx,
+        const llps::grid_value_t<Meta> dy)
     {
-        llps::grid<Type, _rows, _cols, Container1> dphi;
+        llps::_basic_grid<Meta> dphi;
         laplacian_central_fd<error_order>(phi, dphi, dx, dy);
 
         return dphi;
@@ -123,8 +125,8 @@ namespace llps::calculus {
         static constexpr size_t phi_hat_size = _rows * (_cols/2 + 1);
         complex_type* phi_hat = static_cast<complex_type*>(fftw_malloc(sizeof(complex_type) * phi_hat_size));
 
-        fftw_plan forw_plan = fftw_plan_dft_r2c_2d(_rows, _cols, phi.data(), phi_hat, FFTW_PATIENT);
-        fftw_plan back_plan = fftw_plan_dft_c2r_2d(_rows, _cols, phi_hat, dphi.data(), FFTW_PATIENT);
+        fftw_plan forw_plan = fftw_plan_dft_r2c_2d(_rows, _cols, phi.data(), phi_hat, FFTW_ESTIMATE);
+        fftw_plan back_plan = fftw_plan_dft_c2r_2d(_rows, _cols, phi_hat, dphi.data(), FFTW_ESTIMATE);
         
         fftw_execute(forw_plan);
         mult_herm_nfreq_squared<_rows, _cols>(phi_hat, dx, dy);

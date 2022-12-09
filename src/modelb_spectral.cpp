@@ -60,10 +60,11 @@ int main()
     //Integration paramaters
     constexpr double t_min = 0.;
     constexpr double t_max = 1000.;
+    constexpr double dt = 1.;
 
+    //Sampling variables
     constexpr double sample_rate = 1.;
     constexpr size_t samples = static_cast<size_t>((t_max - t_min)/sample_rate) + 1;
-    constexpr double dt = 1.;
 
     std::vector<state_type> result;
     result.reserve(samples);
