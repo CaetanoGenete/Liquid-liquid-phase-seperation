@@ -17,8 +17,8 @@ namespace llps::utilities {
 
     template<typename XIt, typename YIt, class XProj = std::identity, class YProj = std::identity>
     constexpr auto poly_fit1D(
-        XIt first_x, XIt last_x, 
-        YIt first_y, YIt last_y, 
+        XIt first_x, std::sentinel_for<XIt> auto last_x, 
+        YIt first_y, std::sentinel_for<YIt> auto last_y,
         XProj x_proj = {}, 
         YProj y_proj = {})
     {
@@ -61,6 +61,15 @@ namespace llps::utilities {
         return linear_regression_pair{ y_bar - gradient * x_bar, gradient };
     }
 
+    template<typename Range1, typename Range2, class XProj = std::identity, class YProj = std::identity>
+    constexpr auto poly_fit1D(Range1&& range1, Range2&& range2, XProj x_proj = {}, YProj y_proj = {})
+    {
+        return poly_fit1D(
+            std::ranges::begin(range1), std::ranges::end(range1),
+            std::ranges::begin(range2), std::ranges::end(range2),
+            x_proj, y_proj);
+    }
+
     template<std::input_iterator InputIt1, std::input_iterator InputIt2>
     constexpr auto max_abs_error(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2)
     {
@@ -75,6 +84,14 @@ namespace llps::utilities {
         assert(first1 == last1 && first2 == last2);
 
         return result;
+    }
+
+    template<std::ranges::forward_range Range1, std::ranges::forward_range Range2>
+    constexpr auto max_abs_error(Range1&& range1, Range2&& range2)
+    {
+        return max_abs_error(
+            std::ranges::begin(range1), std::ranges::end(range1), 
+            std::ranges::begin(range2), std::ranges::end(range2));
     }
 
     template<std::input_iterator InputIt1, std::input_iterator InputIt2>

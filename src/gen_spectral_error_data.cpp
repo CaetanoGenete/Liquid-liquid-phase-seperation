@@ -6,11 +6,11 @@
 #include <iostream>
 #include <iomanip>
 
-#include "grid.hpp"
-#include "calculus/differentiate.hpp"
-#include "utilities/data_analytics.hpp"
-#include "utilities/meta.hpp"
-#include "utilities/io.hpp"
+#include "llps/grid.hpp"
+#include "llps/calculus/differentiate.hpp"
+#include "llps/utilities/data_analytics.hpp"
+#include "llps/utilities/meta.hpp"
+#include "llps/utilities/io.hpp"
 
 //For access to s suffix
 using namespace std::literals::string_literals;

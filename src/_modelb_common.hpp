@@ -11,9 +11,9 @@
 #include "utilities/io.hpp"
 #include "grid.hpp"
 
-using state_type = llps::grid<double, 256, 256>;
+//using state_type = llps::grid<double, 256, 256>;
 
-template<size_t order>
+template<size_t order, class state_type>
 struct modelb
 {
 public:
@@ -21,7 +21,7 @@ public:
         _a(a), _b(b), _k(k) {}
 
 public:
-    void operator()(const state_type& phi, state_type& dphi, double)
+    LLPS_FORCE_INLINE void operator()(const state_type& phi, state_type& dphi, double)
     {
         static constexpr double dx = 1.;
         static constexpr double dy = 1.;
@@ -40,9 +40,10 @@ private:
     double _a, _b, _k;
 };
 
-void save_to_file(const char* file_name, const std::vector<state_type>& data, std::string title)
+template<class FrameType>
+void save_to_file(const char* file_name, const std::vector<FrameType>& data, std::string title)
 {
-    using value_type = state_type::value_type;
+    using value_type = FrameType::value_type;
 
     //Calculate minimum and maximum values
     auto vmin = std::numeric_limits<value_type>::max();
@@ -65,7 +66,7 @@ void save_to_file(const char* file_name, const std::vector<state_type>& data, st
     llps::utilities::video_header<value_type, value_type> video_header;
     video_header.min_max = { vmin, vmax };
 
-    llps::utilities::serialise_video_header(file, state_type::cols(), state_type::rows(), data.size(), video_header);
+    llps::utilities::serialise_video_header(file, FrameType::cols(), FrameType::rows(), data.size(), video_header);
 
     for (auto& frame : data) {
         for (auto& value : frame)

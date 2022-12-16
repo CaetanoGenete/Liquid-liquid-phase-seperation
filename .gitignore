@@ -41,6 +41,8 @@ deps/
 *.png
 *.dat
 *.pgf
+*.mp4
+out/
 
 #Python cache files
 **/__pycache__

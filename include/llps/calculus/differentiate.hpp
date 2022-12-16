@@ -10,37 +10,31 @@
 #include "fourier_spectral.hpp"
 #include "../grid.hpp"
 
-#if defined(_MSC_VER)
-    #define LLPS_FORCE_INLINE __forceinline
-#elif defined(__GNUC__)
-    #define LLPS_FORCE_INLINE __attribute__((always_inline))
-#endif // _MSC_VER
-
 namespace llps::calculus {
 
-    template<size_t error_order, typename Type, size_t _rows, size_t _cols, typename Container1, typename Container2>
+    template<size_t error_order, grid_like InGrid, grid_like OutGrid>
     LLPS_FORCE_INLINE constexpr void laplacian_central_fd(
-        const llps::grid<Type, _rows, _cols, Container1>& phi, 
-              llps::grid<Type, _rows, _cols, Container2>& dphi,
-        Type dx, Type dy)
+        const InGrid& phi, OutGrid& dphi, 
+        typename OutGrid::value_type dx, 
+        typename OutGrid::value_type dy)
     {
-        static constexpr auto stencil = central_fd_stencil<error_order, Type>(2);
+        static constexpr auto stencil = central_fd_stencil<error_order, typename OutGrid::value_type>(2);
         static constexpr size_t offset = error_order / 2;
 
-        for (size_t row = 0; row < _rows; ++row)
+        for (size_t row = 0; row < phi.rows(); ++row)
         {
-            size_t offset_row = (row + offset) % _rows;
+            size_t offset_row = (row + offset) % phi.rows();
 
-            for (size_t col = 0; col < _cols; ++col)
+            for (size_t col = 0; col < phi.cols(); ++col)
             {
-                size_t offset_col = (col + offset) % _cols;
+                size_t offset_col = (col + offset) % phi.cols();
 
                 dphi(offset_row, offset_col) = 0.;
                 for (size_t i = 0; i <= error_order; ++i) {
                     //Using 2D index here to remain as general as possible
                     dphi(offset_row, offset_col) += (
-                        phi(offset_row, (col + i) % _cols) / (dx * dx) +
-                        phi((row + i) % _rows, offset_col) / (dy * dy)
+                        phi(offset_row, (col + i) % phi.cols()) / (dx * dx) +
+                        phi((row + i) % phi.rows(), offset_col) / (dy * dy)
                     ) * stencil[i];
                 }
             }

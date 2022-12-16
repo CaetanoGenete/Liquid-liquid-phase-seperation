@@ -7,10 +7,10 @@
 
 #include "_modelb_common.hpp"
 
-#include "utilities/io.hpp"
-#include "utilities/timer.hpp"
-#include "calculus/differentiate.hpp"
-#include "grid.hpp"
+#include "llps/utilities/io.hpp"
+#include "llps/utilities/timer.hpp"
+#include "llps/calculus/differentiate.hpp"
+#include "llps/grid.hpp"
 
 using state_type = llps::grid<double, 256, 256>;
 
@@ -44,10 +44,11 @@ int main()
     std::vector<state_type> result;
     result.reserve(samples);
 
+    modelb<6, state_type> model(a, b, k);
     { llps::timer timer;
 
         double last_t = t_min;
-        odeint::integrate_adaptive(stepper, modelb<6>(a, b, k), phi0, t_min, t_max, dt, [&](const state_type& phi, double t) {
+        odeint::integrate_adaptive(stepper, model, phi0, t_min, t_max, dt, [&](const state_type& phi, double t) {
             if (t - last_t >= sample_int) {
                 std::cout << "Progress: " << std::setprecision(2) << t << "/" << std::fixed << t_max << "\r";
 

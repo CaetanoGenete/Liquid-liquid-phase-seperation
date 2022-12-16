@@ -6,9 +6,9 @@
 #include "boost/numeric/odeint.hpp"
 
 #include "_modelb_common.hpp"
-#include "utilities/timer.hpp"
-#include "calculus/differentiate.hpp"
-#include "grid.hpp"
+#include "llps/utilities/timer.hpp"
+#include "llps/calculus/differentiate.hpp"
+#include "llps/grid.hpp"
 
 using state_type = llps::grid<double, 256, 256>;
 

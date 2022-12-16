@@ -5,12 +5,13 @@
 #include <numbers>
 #include <iostream>
 #include <iomanip>
+#include <ranges>
 
-#include "grid.hpp"
-#include "calculus/differentiate.hpp"
-#include "utilities/data_analytics.hpp"
-#include "utilities/meta.hpp"
-#include "utilities/io.hpp"
+#include "llps/grid.hpp"
+#include "llps/calculus/differentiate.hpp"
+#include "llps/utilities/data_analytics.hpp"
+#include "llps/utilities/meta.hpp"
+#include "llps/utilities/io.hpp"
 
 //For access to s suffix
 using namespace std::literals::string_literals;
@@ -74,7 +75,7 @@ int main()
 
             grid_t actual = llps::calculus::laplacian_central_fd<order>(phi, dx, dx);
             //Using max absolute error to measure error
-            value_type max_abs_err = llps::utilities::max_abs_error(expected.begin(), expected.end(), actual.begin(), actual.end());
+            value_type max_abs_err = llps::utilities::max_abs_error(expected, actual);
 
             delta_xs.push_back(dx);
             max_abs_errs.push_back(max_abs_err);
@@ -90,10 +91,8 @@ int main()
         }
 
         auto fit = llps::utilities::poly_fit1D(
-            delta_xs.begin(), 
-            delta_xs.begin() + stop_index,
-            max_abs_errs.begin(), 
-            max_abs_errs.begin() + stop_index,
+            delta_xs     | std::ranges::views::take(stop_index),
+            max_abs_errs | std::ranges::views::take(stop_index),
             std::logl, std::logl);
 
         std::cout << "Actual error order: (expected: " << std::setw(2) << order << ") x^" << fit.gradient << std::endl;

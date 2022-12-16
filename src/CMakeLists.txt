@@ -1,33 +1,19 @@
 set(LLPS_OUTFILE_DEFINE "LLPS_OUTPUT_DIR=\"${CMAKE_SOURCE_DIR}/out/\"")
 
-add_executable(gen_fd_error_data "generate_fd_error_data.cpp")
-target_link_libraries(gen_fd_error_data PRIVATE LLPS_BASIC)
-target_compile_definitions(gen_fd_error_data PRIVATE ${LLPS_OUTFILE_DEFINE})
+function(llps_add_executable target_name link_target)
+    add_executable(${target_name} ${ARGN})
+    target_link_libraries(${target_name} PRIVATE ${link_target})
+    target_compile_definitions(${target_name} PRIVATE ${LLPS_OUTFILE_DEFINE})
+endfunction()
 
-add_executable(simulate_modelb_fd "modelb.cpp" "_modelb_common.hpp")
-target_link_libraries(simulate_modelb_fd PRIVATE LLPS_BASIC)
-target_compile_definitions(simulate_modelb_fd PRIVATE ${LLPS_OUTFILE_DEFINE})
-#Temporary remove at some point
-target_compile_options(simulate_modelb_fd PRIVATE "/arch:AVX512")
+llps_add_executable(gen_fd_error_data  LLPS_BASIC "generate_fd_error_data.cpp")
+llps_add_executable(simulate_modelb_fd LLPS_BASIC "modelb.cpp" "_modelb_common.hpp")
+llps_add_executable(coupled_modelb_fd  LLPS_BASIC "coupled_modelb.cpp" "_modelb_common.hpp")
+llps_add_executable(coupled_modelb_diffusion  LLPS_BASIC "coupled_modelb_diffusion.cpp" "_modelb_common.hpp" "multi_range_algebra.hpp") 
 
-add_executable(coupled_modelb_fd "coupled_modelb.cpp" "_modelb_common.hpp")
-target_link_libraries(coupled_modelb_fd PRIVATE LLPS_BASIC)
-target_compile_definitions(coupled_modelb_fd PRIVATE ${LLPS_OUTFILE_DEFINE})
-#Temporary remove at some point
-target_compile_options(coupled_modelb_fd PRIVATE "/arch:AVX512")
-
-add_executable(test_view "test_view.cpp" "_modelb_common.hpp")
-target_link_libraries(test_view PRIVATE LLPS_BASIC)
-target_compile_definitions(test_view PRIVATE ${LLPS_OUTFILE_DEFINE})
+llps_add_executable(test_view  LLPS_BASIC "test_view.cpp" "_modelb_common.hpp" "multi_range_algebra.hpp")
 
 if(LLPS_USE_MKL)
-    add_executable(gen_spectral_error_data "gen_spectral_error_data.cpp")
-    target_link_libraries(gen_spectral_error_data PRIVATE LLPS_MKL)
-    target_compile_definitions(gen_spectral_error_data PRIVATE ${LLPS_OUTFILE_DEFINE})
-
-    add_executable(simulate_modelb_spectral "modelb_spectral.cpp" "_modelb_common.hpp")
-    target_link_libraries(simulate_modelb_spectral PRIVATE LLPS_MKL)
-    target_compile_definitions(simulate_modelb_spectral PRIVATE ${LLPS_OUTFILE_DEFINE})
-    #Temporary remove at some point
-target_compile_options(simulate_modelb_spectral PRIVATE "/arch:AVX512")
+    llps_add_executable(gen_spectral_error_data  LLPS_MKL "gen_spectral_error_data.cpp")
+    llps_add_executable(simulate_modelb_spectral LLPS_MKL "modelb_spectral.cpp" "_modelb_common.hpp")
 endif()

@@ -32,13 +32,13 @@ namespace llps::utilities {
 
     inline void serialise_plot_header(std::ofstream& stream, size_t count, plot_header meta = {})
     {
+        serialise_to_binary<uint64_t>(stream, count);
+
         serialise_string(stream, meta.title);
         serialise_string(stream, meta.x_label);
         serialise_string(stream, meta.y_label);
         serialise_string(stream, meta.x_scale);
         serialise_string(stream, meta.y_scale);
-
-        serialise_to_binary<uint64_t>(stream, count);
     }
 
     struct line_header
@@ -64,7 +64,8 @@ namespace llps::utilities {
     template<std::floating_point ValueType, std::floating_point SpaceType>
     struct video_header
     {
-        std::pair<ValueType, ValueType> min_max = {0., 0.};
+        std::string sub_title = "";
+
         SpaceType dx = 1.;
         SpaceType dy = 1.;
 
@@ -79,20 +80,32 @@ namespace llps::utilities {
         video_header<ValueType, SpaceType> meta = {})
     {
         serialise_to_binary<uint8_t>(stream, sizeof(ValueType));
-        //serialise_to_binary<uint8_t>(stream, sizeof(TimeType));
         serialise_to_binary<uint8_t>(stream, sizeof(SpaceType));
 
-        serialise_to_binary(stream, meta.min_max.first);
-        serialise_to_binary(stream, meta.min_max.second);
+        serialise_string(stream, meta.sub_title);
+
         serialise_to_binary(stream, meta.dx);
         serialise_to_binary(stream, meta.dy);
 
-        serialise_to_binary<uint64_t>(stream, width);
         serialise_to_binary<uint64_t>(stream, height);
+        serialise_to_binary<uint64_t>(stream, width);
 
         serialise_to_binary(stream, meta.interval);
         
         serialise_to_binary<uint64_t>(stream, frames);
+    }
+
+    inline void serialise_meta_data_header(std::ofstream& stream, size_t data_count)
+    {
+        serialise_to_binary(stream, data_count);
+    }
+
+    template<std::floating_point Type>
+    inline void serialise_meta_data(std::ofstream& stream, std::string name, Type value)
+    {
+        serialise_string(stream, name);
+        serialise_to_binary<uint8_t>(stream, sizeof(Type));
+        serialise_to_binary(stream, value);
 
     }
 }

@@ -6,6 +6,12 @@
 
 #include "aligned_allocator.hpp"
 
+#if defined(_MSC_VER)
+    #define LLPS_FORCE_INLINE __forceinline
+#elif defined(__GNUC__)
+    #define LLPS_FORCE_INLINE __attribute__((always_inline))
+#endif // _MSC_VER
+
 namespace llps {
 
 #ifdef LLPS_USE_MKL
@@ -15,6 +21,26 @@ namespace llps {
     template<class Type>
     using _grid_default_alloc = std::allocator<Type>;
 #endif // LLPS_USE_MKL
+
+    template<typename Type>
+    concept grid_like = requires(Type& grid, const Type& const_grid, typename Type::size_type index) {
+        typename Type::value_type;
+        typename Type::reference;
+        typename Type::const_reference;
+        typename Type::size_type;
+
+        {const_grid.rows()} -> std::same_as<typename Type::size_type>;
+        {const_grid.cols()} -> std::same_as<typename Type::size_type>;
+
+        {const_grid(index, index)} -> std::same_as<typename Type::const_reference>;
+        {grid(index, index)}       -> std::same_as<typename Type::reference>;
+    };
+
+    template<class Type>
+    struct grid_value;
+
+    template<class Type>
+    using grid_value_t = typename grid_value<Type>::type;
 
     /*
     * Defines compile-time attributes of _basic_grid class. 
@@ -42,6 +68,12 @@ namespace llps {
 
     template<class Meta>
     struct _grid_base;
+
+    template<typename Grid, size_t _view_rows, size_t _view_cols>
+    struct const_subgrid_view;
+
+    template<class Grid, size_t _view_rows, size_t _view_cols>
+    struct subgrid_view;
 
     template<typename Type, size_t _rows, size_t _cols, typename Container>
     struct _grid_base<_grid_meta_data<Type, _rows, _cols, Container>>
@@ -104,14 +136,27 @@ namespace llps {
         constexpr _basic_grid(): 
             _underlying(_base_t::size()) {}
 
+        template<class OtherGrid, size_t view_rows, size_t view_cols>
+        constexpr _basic_grid(const_subgrid_view<OtherGrid, view_rows, view_cols> other)
+            :_basic_grid()
+        {
+            static_assert(view_rows * view_cols <= _base_t::size(), 
+                "Cannot construct, view size does not match grid size!");
+
+            auto it = _underlying.begin();
+            for (size_t row = 0; row < view_rows; ++row)
+                for (size_t col = 0; col < view_cols; ++col, ++it)
+                    *it = other(row, col);
+        }
+
     public:
-        constexpr _base_t::const_reference operator()(_base_t::size_type row, _base_t::size_type column) const
+        LLPS_FORCE_INLINE constexpr _base_t::const_reference operator()(_base_t::size_type row, _base_t::size_type column) const
         {
             //Row major order
             return _underlying[column + row * _base_t::cols()];
         }
 
-        constexpr _base_t::reference operator()(_base_t::size_type row, _base_t::size_type column)
+        LLPS_FORCE_INLINE constexpr _base_t::reference operator()(_base_t::size_type row, _base_t::size_type column)
         {
             return const_cast<_base_t::reference>(static_cast<const _basic_grid&>(*this)(row, column));
         }
@@ -140,12 +185,6 @@ namespace llps {
         class Container = std::vector<Type, _grid_default_alloc<Type>>>
     using grid = _basic_grid<_grid_meta_data<Type, _rows, _cols, Container>>;
 
-    template<class Type>
-    struct grid_value;
-
-    template<class Type>
-    using grid_value_t = typename grid_value<Type>::type;
-
     template<typename Type, size_t _rows, size_t _cols, typename Container>
     struct grid_value<_grid_meta_data<Type, _rows, _cols, Container>>
     { using type = Type; };
@@ -155,15 +194,14 @@ namespace llps {
     { using type = grid_value_t<Meta>; };
 
 
-    template<typename Grid, size_t _view_rows, size_t _view_cols>
-    struct const_subgrid_view;
-
     template<class GridMeta, size_t _view_rows, size_t _view_cols>
     struct const_subgrid_view<_basic_grid<GridMeta>, _view_rows, _view_cols>:
         public _grid_base<_grid_meta_data<grid_value_t<GridMeta>, _view_rows, _view_cols, typename GridMeta::underlying_type>>
     {
     public:
         using parent_grid_t = _basic_grid<GridMeta>;
+
+        using reference = typename parent_grid_t::const_reference;
 
     public:
         static_assert(_view_cols <= GridMeta::cols && _view_rows <= GridMeta::rows,
@@ -177,14 +215,14 @@ namespace llps {
         {}
 
         const_subgrid_view(const const_subgrid_view&) = delete;
-        const_subgrid_view(const_subgrid_view&&) = delete;
+        const_subgrid_view(const_subgrid_view&&) = default;
 
     public:
         const_subgrid_view& operator=(const const_subgrid_view&) = delete;
-        const_subgrid_view& operator=(const_subgrid_view&&) = delete;
+        const_subgrid_view& operator=(const_subgrid_view&&) = default;
 
     public:
-        constexpr const_subgrid_view::const_reference operator()(const_subgrid_view::size_type row, const_subgrid_view::size_type col) const {
+        LLPS_FORCE_INLINE constexpr const_subgrid_view::const_reference operator()(const_subgrid_view::size_type row, const_subgrid_view::size_type col) const {
             return _grid(row + _row_offset, col + _col_offset); 
         }
 
@@ -206,11 +244,20 @@ namespace llps {
         using _base_t = const_subgrid_view<Grid, _view_rows, _view_cols>;
 
     public:
+        //reference is different from const_subgrid_view
+        using reference = typename Grid::reference;
+
+    public:
         constexpr subgrid_view(Grid& grid, _base_t::size_type row_offset = 0, _base_t::size_type col_offset = 0) noexcept :
             _base_t(grid, row_offset, col_offset) {}
 
     public:
-        constexpr _base_t::reference operator()(_base_t::size_type row, _base_t::size_type col)
+        LLPS_FORCE_INLINE constexpr _base_t::const_reference operator()(_base_t::size_type row, _base_t::size_type col) const
+        {
+            return _base_t::operator()(row, col);
+        }
+
+        LLPS_FORCE_INLINE constexpr reference operator()(_base_t::size_type row, _base_t::size_type col)
         { 
             //Cast is safe here since constructor requires non-const grid
             return const_cast<Grid&>(_base_t::_grid)(row + _base_t::_row_offset, col + _base_t::_col_offset);
@@ -221,29 +268,23 @@ namespace llps {
     subgrid_view(grid<Type, _rows, _cols, Container>&)->subgrid_view<grid<Type, _rows, _cols, Container>, _rows, _cols>;
 
 
-    template<typename Meta, typename Callable>
+    template<grid_like Grid, typename Type, typename Callable>
     constexpr void apply_equi2D(
-        _basic_grid<Meta>& grid,
-        const grid_value_t<Meta> x_min, const grid_value_t<Meta> x_max,
-        const grid_value_t<Meta> y_min, const grid_value_t<Meta> y_max,
+        Grid& grid,
+        const Type x_min, const Type x_max,
+        const Type y_min, const Type y_max,
         Callable func)
     {
-        using value_type = grid_value_t<Meta>;
-
-        const value_type dx = (x_max - x_min) / grid.cols();
-        const value_type dy = (y_max - y_min) / grid.rows();
+        const Type dx = (x_max - x_min) / grid.cols();
+        const Type dy = (y_max - y_min) / grid.rows();
 
         for (size_t row = 0; row < grid.rows(); ++row)
             for (size_t col = 0; col < grid.cols(); ++col)
                 grid(row, col) = std::invoke(func, col * dx, row * dy);
     }
 
-    template<typename Meta, typename Callable>
-    constexpr void apply_equi2D(
-        _basic_grid<Meta>& grid,
-        const grid_value_t<Meta> x_min,
-        const grid_value_t<Meta> x_max,
-        Callable func)
+    template<grid_like Grid, typename Type, typename Callable>
+    constexpr void apply_equi2D(Grid& grid, const Type x_min, const Type x_max, Callable func)
     {
         return apply_equi2D(grid, x_min, x_max, x_min, x_max, func);
     }

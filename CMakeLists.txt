@@ -13,15 +13,15 @@ set(LLPS_DEPENDENCIES_SOURCE_DIR "${CMAKE_SOURCE_DIR}/deps/")
 set(LLPS_DEPENDENCIES_BINARY_DIR "${CMAKE_BINARY_DIR}/dependencies/")
 
 set(LLPS_HEADERS
-    "include/grid.hpp"
-    "include/aligned_allocator.hpp"
-    "include/calculus/finite_difference.hpp"
-    "include/calculus/differentiate.hpp"
-    "include/calculus/fourier_spectral.hpp"
-    "include/utilities/io.hpp"
-    "include/utilities/data_analytics.hpp"
-    "include/utilities/meta.hpp"
-    "include/utilities/timer.hpp")
+    "include/llps/grid.hpp"
+    "include/llps/aligned_allocator.hpp"
+    "include/llps/calculus/finite_difference.hpp"
+    "include/llps/calculus/differentiate.hpp"
+    "include/llps/calculus/fourier_spectral.hpp"
+    "include/llps/utilities/io.hpp"
+    "include/llps/utilities/data_analytics.hpp"
+    "include/llps/utilities/meta.hpp"
+    "include/llps/utilities/timer.hpp")
 
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${LLPS_HEADERS})
 
